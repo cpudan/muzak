@@ -1,0 +1,8 @@
+// Yeet
+digraph {
+	A [label="Sir aaa"]
+	B [label="B movie"]
+	A -> B
+	A -> L
+	L [label=Leeroyyyy]
+}
