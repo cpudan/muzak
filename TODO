@@ -1,0 +1,6 @@
+Touch OSC Ipad for synth controls? Then we can't update them with a program change :(
+Or can we?? hmm
+Orrrr we could do a flask webapp
+
+SynthDef needs to be über-paramaterizable so we can configure via Python.
+
