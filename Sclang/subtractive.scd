@@ -6,7 +6,7 @@ SynthDef.new(\subtractor, {
     // Fine adjustment expects offset in number of hz
     i_fine = #[0,0,0,0,0,0,0],
     // options: sin, saw, square, triangle
-    //shape = "sin",
+	shape = \sin,
     gate = 1;
 
     var source, env, n_osc;
@@ -15,10 +15,11 @@ SynthDef.new(\subtractor, {
 
     env = EnvGen.kr(Env.new(), gate: gate, doneAction:2);
     source = (0..n_osc-1).collect({
-        arg i;
-/*        if ((i_coarse[i].isNil)){*/
-            Saw.ar(freq + freq* (i_coarse[i]).midiratio + i_fine[i]) * env;
-    // }
+        arg i, coarse = i_coarse[i], fine = i_fine[i];
+		switch(shape,
+			'sin', SinOsc.ar(freq + freq* coarse.midiratio + fine) * env,
+			'saw', Saw.ar(freq + freq* coarse.midiratio + fine) * env
+		);
     });
 
     source = [Mix(source)]!2;
