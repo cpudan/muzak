@@ -1,5 +1,3 @@
-s.options.numOutputBusChannels = 8
-
 (
 SynthDef.new(\oscz, {
     arg freq = 20, out=0, amp=0.2, gate = 1,
@@ -9,7 +7,7 @@ SynthDef.new(\oscz, {
     env = EnvGen.kr(Env.adsr(attack,decay,sustain,release), gate: gate, doneAction: 2);
     true_freq = freq*coarse.midiratio + fine;
     source = Select.ar(oscType,[SinOsc.ar(true_freq,mul:amp), LFTri.ar(true_freq,mul:amp), Saw.ar(true_freq,mul:amp), Pulse.ar(true_freq,width:shape,mul:amp), WhiteNoise.ar(mul:amp)]);
-	Out.ar(out, [source])
+    Out.ar(out, [source]);
 }).add;
 )
 
@@ -39,10 +37,11 @@ SynthDef.new(\subtractor, {
 
 (
 ~b0 = Bus.audio(s, 2);
+g = Group.new;
+// z = Group.after(g);
 ~b1 = Bus.audio(s, 1);
-~b2 = Bus.audio(s, 1);
+~b2 = Bus.audio(s, 2);
 )
-
 (
 g = Group.new;
 // z = Group.after(g);
@@ -86,6 +85,35 @@ g.set(\cutoff,400);
 g.set(\freq,100);
 g.set(\gate, 0);
 
+Synth.tail(g, \oscz, [\out, ~b1]);
+Synth.tail(g,\oscz, [\out, ~b1, \fine, 2]);
+Synth.tail(g, \subtractor, [\in,~b1, \out, 0]);
+g.set(\freq, 220, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
+)
+g.set(\cutoff,900)
+g.set(\freq,40);
+g.set(\gate, 0);
+
+MIDIIn.connectAll;
+(
+MIDIdef.freeAll;
+MIDIdef(\noteOn, {
+	arg a, b, c, d;
+	[a,b,c,d].postln;
+	Synth.tail(g, \oscz, [\out, ~b1]);
+	Synth.tail(g,\oscz, [\out, ~b1, \fine, 2]);
+	Synth.tail(g, \subtractor, [\in,~b1, \out, 0]);
+	g.set(\freq, b.midiratio, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
+}, msgType: \noteOn);
+
+MIDIdef(\noteOff, {
+	arg a, b, c, d;
+	[a,b,c,d].postln;
+	g.set(\gate, 0);
+}, msgType: \noteOff);
+)
+
+>>>>>>> MIDI
 MIDIIn.connectAll;
 MIDIdef.cc(\test1, {arg ...args; args.postln}, 1); // match cc 1
 MIDIdef.cc(\test2, {arg ...args; args.postln}, 1, 1); // match cc1, chan 1
