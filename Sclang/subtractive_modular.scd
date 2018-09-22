@@ -45,11 +45,6 @@ Synth.tail(g, \oscz, [\out, ~b1]);
 Synth.tail(g,\oscz, [\out, ~b1, \fine, 2]);
 Synth.tail(g, \subtractor, [\in,~b1, \out, 0]);
 g.set(\freq, 220, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
-)
-g.set(\cutoff,900)
-g.set(\freq,40);
-g.set(\gate, 0);
-
 MIDIIn.connectAll;
 (
 MIDIdef.freeAll;
