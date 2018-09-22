@@ -1,3 +1,5 @@
+s.options.numOutputBusChannels = 8
+
 (
 SynthDef.new(\oscz, {
     arg freq = 20, out=0, amp=0.2, gate = 1,
@@ -36,11 +38,18 @@ SynthDef.new(\subtractor, {
 
 
 (
+~b0 = Bus.audio(s, 2);
+~b1 = Bus.audio(s, 1);
+~b2 = Bus.audio(s, 1);
+)
 
+(
 g = Group.new;
 // z = Group.after(g);
-~b1 = Bus.audio(s, 1);
-~b2 = Bus.audio(s, 2);
+Synth.head(g, \oscz, [\out, ~b1]);
+Synth.head(g,\oscz, [\out, ~b2]);
+g.set(\freq, 220);
+Synth.tail(g, \subtractor,[\in_1, ~b1, \in_2, ~b2, \out, 0]);
 )
 
 (
