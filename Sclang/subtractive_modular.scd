@@ -1,48 +1,70 @@
-s.options.numOutputBusChannels = 8
-
 (
 SynthDef.new(\oscz, {
-    arg freq = 20, out=0, amp=1, gate = 1;
+    arg freq = 20, out=0, amp=0.2, gate = 1,
+    attack = 0.5, decay = 0.5, sustain = 0.5, release = 0.5, coarse = 0, fine = 0;
     var source, env;
-    source = SinOsc.ar(freq, amp);
+    env = EnvGen.kr(Env.adsr(attack,decay,sustain,release), gate: gate, doneAction: 2);
+    source = Saw.ar(freq*coarse.midiratio + fine,mul:amp);
 	Out.ar(out, [source])
 }).add;
 )
 (
 SynthDef.new(\subtractor, {
-    arg in_1, in_2, out = 0, gate = 1;
+    arg in, out = 0, freq = 220, gate = 1,
+    attack = 0.5, decay = 0.5, sustain = 0.5, release = 0.5,
+    cutoff = 100;
 
     var source, env;
-	env = EnvGen.kr(Env.adsr, gate: gate, doneAction: 2);
-	source = In.ar([in_1, in_2], 2);
-    Out.ar(out, source*env);
-}).add;
-)
 
-(
-~b0 = Bus.audio(s, 2);
-~b1 = Bus.audio(s, 1);
-~b2 = Bus.audio(s, 1);
+
+	env = EnvGen.kr(Env.adsr(attack,decay,sustain,release), gate: gate, doneAction: 2);
+    source = In.ar(in)*env;
+    source = LPF.ar(source, freq=cutoff);
+    Out.ar(out, source!2);
+}).add;
 )
 
 (
 g = Group.new;
 // z = Group.after(g);
-
-Synth.head(g, \oscz, [\out, ~b1]);
-Synth.head(g,\oscz, [\out, ~b2]);
-g.set(\freq, 220);
-Synth.tail(g, \subtractor,[\in_1, ~b1, \in_2, ~b2, \out, 0]);
+~b1 = Bus.audio(s, 1);
+~b2 = Bus.audio(s, 2);
 )
-
+(
+Synth.tail(g, \oscz, [\out, ~b1]);
+Synth.tail(g,\oscz, [\out, ~b1, \fine, 2]);
+Synth.tail(g, \subtractor, [\in,~b1, \out, 0]);
+g.set(\freq, 220, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
+)
+g.set(\cutoff,900)
+g.set(\freq,40);
 g.set(\gate, 0);
 
-x = Synth(\subtractor, args:[\i_coarse, #[-12], \i_fine, #[0]])
+MIDIIn.connectAll;
+(
+MIDIdef.freeAll;
+MIDIdef(\noteOn, {
+	arg a, b, c, d;
+	[a,b,c,d].postln;
+	Synth.tail(g, \oscz, [\out, ~b1]);
+	Synth.tail(g,\oscz, [\out, ~b1, \fine, 2]);
+	Synth.tail(g, \subtractor, [\in,~b1, \out, 0]);
+	g.set(\freq, b.midiratio, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
+}, msgType: \noteOn);
 
-b = 5;
+MIDIdef(\noteOff, {
+	arg a, b, c, d;
+	[a,b,c,d].postln;
+	g.set(\gate, 0);
+}, msgType: \noteOff);
+)
 
-((1..b).collect({
-    arg i;
-    i.postln;
-    i.midiratio.postln;
-});)
+MIDIIn.connectAll;
+MIDIdef.cc(\test1, {arg ...args; args.postln}, 1); // match cc 1
+MIDIdef.cc(\test2, {arg ...args; args.postln}, 1, 1); // match cc1, chan 1
+MIDIdef.cc(\test3, {arg ...args; args.postln}, (1..10)); // match cc 1-10
+MIDIdef.noteOn(\test4, {arg ...args;
+	args.postln}
+); // match any noteOn
+
+MIDIdef.freeAll
