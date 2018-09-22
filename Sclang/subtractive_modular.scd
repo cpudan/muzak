@@ -113,7 +113,6 @@ MIDIdef(\noteOff, {
 }, msgType: \noteOff);
 )
 
->>>>>>> MIDI
 MIDIIn.connectAll;
 MIDIdef.cc(\test1, {arg ...args; args.postln}, 1); // match cc 1
 MIDIdef.cc(\test2, {arg ...args; args.postln}, 1, 1); // match cc1, chan 1
