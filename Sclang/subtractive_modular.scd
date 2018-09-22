@@ -25,6 +25,16 @@ SynthDef.new(\subtractor, {
 )
 
 (
+~keys = (0..127).collect({
+	Group.new()
+});
+~b1 = Bus.audio(s, 1);
+~b2 = Bus.audio(s, 2);
+)
+
+
+(
+
 g = Group.new;
 // z = Group.after(g);
 ~b1 = Bus.audio(s, 1);
@@ -46,16 +56,16 @@ MIDIdef.freeAll;
 MIDIdef(\noteOn, {
 	arg a, b, c, d;
 	[a,b,c,d].postln;
-	Synth.tail(g, \oscz, [\out, ~b1]);
-	Synth.tail(g,\oscz, [\out, ~b1, \fine, 2]);
-	Synth.tail(g, \subtractor, [\in,~b1, \out, 0]);
-	g.set(\freq, b.midiratio, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
+	Synth.tail(~keys[b], \oscz, [\out, ~b1]);
+	Synth.tail(~keys[b],\oscz, [\out, ~b1, \fine, 2]);
+	Synth.tail(~keys[b], \subtractor, [\in,~b1, \out, 0]);
+	~keys[b].set(\freq, b.midiratio, \attack,1, \decay,0.1, \sustain,0.5, \release,2, \amp, 0.5);
 }, msgType: \noteOn);
 
 MIDIdef(\noteOff, {
 	arg a, b, c, d;
 	[a,b,c,d].postln;
-	g.set(\gate, 0);
+	~keys[b].set(\gate, 0);
 }, msgType: \noteOff);
 )
 
