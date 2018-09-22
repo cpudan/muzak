@@ -9,9 +9,7 @@ SynthDef.new(\oscz, {
     source = Select.ar(oscType,[SinOsc.ar(true_freq,mul:amp), LFTri.ar(true_freq,mul:amp), Saw.ar(true_freq,mul:amp), Pulse.ar(true_freq,width:shape,mul:amp), WhiteNoise.ar(mul:amp)]);
     Out.ar(out, [source]);
 }).add;
-)
 
-(
 SynthDef.new(\subtractor, {
     arg in, out = 0, freq = 220, gate = 1,
     attack = 0.5, decay = 0.5, sustain = 0.5, release = 0.5,
@@ -27,6 +25,7 @@ SynthDef.new(\subtractor, {
 )
 
 (
+MIDIIn.connectAll;
 ~keys = (0..127).collect({
 	Group.new()
 });
@@ -34,7 +33,6 @@ SynthDef.new(\subtractor, {
 ~b2 = Bus.audio(s, 2);
 )
 
-MIDIIn.connectAll;
 (
 MIDIdef.freeAll;
 MIDIdef(\noteOn, {
