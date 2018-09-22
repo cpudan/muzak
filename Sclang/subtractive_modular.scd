@@ -1,3 +1,5 @@
+s.options.numOutputBusChannels = 8
+
 (
 SynthDef.new(\oscz, {
     arg freq = 20, out=0, amp=1, gate = 1;
@@ -8,24 +10,29 @@ SynthDef.new(\oscz, {
 )
 (
 SynthDef.new(\subtractor, {
-    arg in_1, in_2, out = 0, freq = 220, gate = 1;
+    arg in_1, in_2, out = 0, gate = 1;
 
     var source, env;
-	env = EnvGen.kr(Env.new([0,1,0.5,0], [1,1,1]), gate: gate, doneAction: 2);
-	source = In.ar([in_1, in_2]*env, 2);
-    Out.ar(out, source);
+	env = EnvGen.kr(Env.adsr, gate: gate, doneAction: 2);
+	source = In.ar([in_1, in_2], 2);
+    Out.ar(out, source*env);
 }).add;
+)
+
+(
+~b0 = Bus.audio(s, 2);
+~b1 = Bus.audio(s, 1);
+~b2 = Bus.audio(s, 1);
 )
 
 (
 g = Group.new;
 // z = Group.after(g);
-~b1 = Bus.audio(s, 1);
-~b2 = Bus.audio(s, 2);
-Synth.tail(g, \oscz, out: ~b1);
-Synth.tail(g,\oscz, out: ~b2);
-Synth.tail(g, \subtractor, out: 0);
+
+Synth.head(g, \oscz, [\out, ~b1]);
+Synth.head(g,\oscz, [\out, ~b2]);
 g.set(\freq, 220);
+Synth.tail(g, \subtractor,[\in_1, ~b1, \in_2, ~b2, \out, 0]);
 )
 
 g.set(\gate, 0);
