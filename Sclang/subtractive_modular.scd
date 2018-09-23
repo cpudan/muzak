@@ -48,5 +48,3 @@ MIDIdef(\noteOff, {
 	~keys[b].release;
 }, msgType: \noteOff);
 )
-
-set~keys[93].set(\gate, 0);
